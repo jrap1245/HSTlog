@@ -37,13 +37,16 @@ public:
   LogLevel displayLogLevel = LogLevel::DEBUG;
   uint8_t logOutput = DEBUG_SERIAL | DEBUG_MQTT;
 
-  HSTlog(uint8_t output = DEBUG_SERIAL);
+  HSTlog(uint8_t output = DEBUG_SERIAL, uint16_t max_lines = 40);
 
   using LogCallback = std::function<void(uint32_t, LogLevel, const char*)>;
 
   void log(LogLevel level, const String& msg);
   String getLastLines(uint8_t count) const;
-  uint8_t getLastEntries(LogEntry* out, uint8_t maxCount, LogLevel minLevel = LogLevel::DEBUG) const;
+  uint8_t getLastEntries(LogEntry* out,
+                         uint8_t maxCount,
+                         LogLevel minLevel = LogLevel::DEBUG,
+                         uint8_t page = 0) const;
   uint32_t getTime();
 
   void setOutput(uint8_t output);
@@ -78,15 +81,14 @@ public:
 
 private:
   uint8_t _output;
-
+  uint16_t _maxLines;
   int32_t _baseEpoch = 0;             // Timestamp received to set clock
   uint32_t _baseMillis = 0;           // Millis @ setTime() call
 
   // Buffer circulaire pour conserver les messages formatés
-  static const uint8_t MAX_LINES = 40;
   volatile uint8_t _head = 0;
   volatile uint8_t _tail = 0;
-  LogEntry _lines[MAX_LINES];
+  LogEntry* _lines;
   uint8_t _index = 0;
   uint8_t _count = 0;
 

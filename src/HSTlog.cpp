@@ -2,7 +2,12 @@
 #include <stdio.h>
 #include <string.h>
 
-HSTlog::HSTlog(uint8_t output) : _output(output) {}
+HSTlog::HSTlog(uint8_t output, uint16_t maxLines)
+:   _output(output),
+    _maxLines(maxLines)
+{
+    _lines = new LogEntry[_maxLines];
+}
 
 void HSTlog::log(LogLevel level, const String& msg) {
   uint32_t now = getTime();
@@ -14,11 +19,11 @@ void HSTlog::log(LogLevel level, const String& msg) {
 
   if (level >= displayLogLevel) {     // log only display levels
     _lines[_head] = e;
-    _head = (_head + 1) % MAX_LINES;
-    if (_count < MAX_LINES) {
+    _head = (_head + 1) % _maxLines;
+    if (_count < _maxLines) {
       _count++;
     } else {
-      _tail = (_tail + 1) % MAX_LINES;
+      _tail = (_tail + 1) % _maxLines;
     }
   }
 
@@ -33,10 +38,10 @@ String HSTlog::getLastLines(uint8_t count) const {
     if (count > _count) count = _count;
 
     String out;
-    uint8_t idx = (_head + MAX_LINES - count) % MAX_LINES;
+    uint8_t idx = (_head + _maxLines - count) % _maxLines;
 
     for (uint8_t i = 0; i < count; i++) {
-        const LogEntry& e = _lines[(idx + i) % MAX_LINES];
+        const LogEntry& e = _lines[(idx + i) % _maxLines];
         out += e.message;
         if (i < count - 1) out += "\n";
     }
@@ -71,15 +76,41 @@ void HSTlog::setTime(uint32_t unixtime) {
 
 uint8_t HSTlog::getLastEntries(LogEntry* out,
                                uint8_t maxCount,
-                               LogLevel minLevel) const {
-  uint8_t written = 0;
-  for (int i = _count - 1; i >= 0 && written < maxCount; --i) {
-    const LogEntry& e = _lines[i];
-    if (e.level >= minLevel) {
-      out[written++] = e;
+                               LogLevel minLevel,
+                               uint8_t page) const
+{
+    // 1) On collecte d'abord toutes les entrées filtrées (>= minLevel)
+    LogEntry filtered[_maxLines];
+    uint16_t fcount = 0;
+
+    for (int i = _count - 1; i >= 0; --i) {
+        const LogEntry& e = _lines[i];
+        if (e.level >= minLevel) {
+            filtered[fcount++] = e;
+        }
     }
-  }
-  return written;
+
+    if (fcount == 0) {
+        return 0; // rien à afficher
+    }
+
+    // 2) Calcul de l'offset de pagination
+    uint16_t start = page * maxCount;
+
+    if (start >= fcount) {
+      if (fcount > maxCount) {
+        start = fcount - maxCount;
+      } else {
+        start = 0;
+      }
+    }
+
+    // 3) On copie maxCount entrées à partir de start
+    uint8_t written = 0;
+    for (uint16_t i = start; i < fcount && written < maxCount; ++i) {
+        out[written++] = filtered[i];
+    }
+    return written;
 }
 
 void HSTlog::dispatch(const char* msg) {
