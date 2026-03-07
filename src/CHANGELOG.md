@@ -6,3 +6,7 @@
 
 - timestamp added to LogEntry
 - New LogLevel OLED
+
+### Version 1.2.0
+
+- added pagination to log requests
