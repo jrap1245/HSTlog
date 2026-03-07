@@ -12,6 +12,10 @@ enum LogOutput {
   LOG_DISPLAY = 1 << 2,
 };
 
+/* LogLevel defines a set of
+ * logging/notification levels (DEBUG = 1, INFO = 2, STATUS = 3, WARNING = 4, ERROR = 5, BOOT = 6)
+ * plus an OLED value (7) intended for sending short messages to an OLED display.
+ */
 enum class LogLevel {
   DEBUG       = 1,
   INFO        = 2,
@@ -19,9 +23,14 @@ enum class LogLevel {
   WARNING     = 4,
   ERROR       = 5,
   BOOT        = 6,
-  OLED        = 7       // is here if you want to show short messages on your OLED
+  OLED        = 7       // if you want to show short messages on your OLED
 };
 
+/* LogEntry is a Plain‑Old‑Data struct holding a single log record
+ *  - LogLevel indicating severity
+ *  - String for the message
+ *  - uint32_t timestamp.
+ */
 struct LogEntry {
   LogLevel level;
   String message;
