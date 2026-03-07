@@ -1,5 +1,5 @@
 #pragma once
-#include <Arduino.h>
+//#include <Arduino.h>
 #include <stdint.h>
 #include <stdarg.h>
 #include <RTClib.h>
@@ -9,7 +9,7 @@ enum LogOutput {
   LOG_NONE    = 0,
   LOG_SERIAL  = 1 << 0,
   LOG_MQTT    = 1 << 1,
-  LOG_DISPLAY = 1 << 2,
+  LOG_DISPLAY = 1 << 2
 };
 
 /* LogLevel defines a set of
