@@ -34,46 +34,6 @@ void HSTlog::log(LogLevel level, const String& msg) {
   if (_displayCb) _displayCb(now, level, safe);
 }
 
-String HSTlog::getLastLines(uint8_t count) const {
-    if (count > _count) count = _count;
-
-    String out;
-    uint8_t idx = (_head + _maxLines - count) % _maxLines;
-
-    for (uint8_t i = 0; i < count; i++) {
-        const LogEntry& e = _lines[(idx + i) % _maxLines];
-        out += e.message;
-        if (i < count - 1) out += "\n";
-    }
-//Serial.println(String("HSTlog::getLastLines: ") + out);  // Debug
-    return out;
-}
-
-void HSTlog::setOutput(uint8_t output) {
-    _output = output;
-}
-
-void HSTlog::setSerialCallback(LogCallback cb) {
-    _serialCb = cb;
-}
-
-void HSTlog::setMqttCallback(LogCallback cb) {
-    _mqttCb = cb;
-}
-
-void HSTlog::setDisplayCallback(LogCallback cb) {
-    _displayCb = cb;
-}
-
-uint32_t HSTlog::getTime() {
-  return ((millis() - _baseMillis) / 1000 + _baseEpoch);
-}
-
-void HSTlog::setTime(uint32_t unixtime) {
-  _baseMillis = millis();
-  _baseEpoch = unixtime;
-}
-
 uint8_t HSTlog::getLastEntries(LogEntry* out,
                                uint8_t maxCount,
                                LogLevel minLevel,
@@ -113,11 +73,37 @@ uint8_t HSTlog::getLastEntries(LogEntry* out,
     return written;
 }
 
+LogEntry HSTlog::getLastLog() {
+  return _lines[_head];
+}
+
+void HSTlog::setOutput(uint8_t output) {
+    _output = output;
+}
+
+void HSTlog::setSerialCallback(LogCallback cb) {
+    _serialCb = cb;
+}
+
+void HSTlog::setMqttCallback(LogCallback cb) {
+    _mqttCb = cb;
+}
+
+void HSTlog::setDisplayCallback(LogCallback cb) {
+    _displayCb = cb;
+}
+
+uint32_t HSTlog::getTime() {
+  return ((millis() - _baseMillis) / 1000 + _baseEpoch);
+}
+
+void HSTlog::setTime(uint32_t unixtime) {
+  _baseMillis = millis();
+  _baseEpoch = unixtime;
+}
+
 void HSTlog::dispatch(const char* msg) {
-  log(LogLevel::DEBUG, msg);  // Enregistrer le message dans le buffer circulaire
-//    if (_serialCb)  _serialCb(LogLevel::DEBUG, msg);
-//    if (_mqttCb)    _mqttCb(LogLevel::DEBUG, msg);
-//    if (_displayCb) _displayCb(LogLevel::DEBUG, msg);
+  log(LogLevel::DEBUG, msg);    // Enregistrer le message dans le buffer circulaire
 }
 
 // --- print() ---

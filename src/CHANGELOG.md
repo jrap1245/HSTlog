@@ -6,4 +6,3 @@
 
 - timestamp added to LogEntry
 - New LogLevel OLED
-- getLastLines() return only OLED and greater LogLevel's
