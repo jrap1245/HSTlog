@@ -12,7 +12,7 @@ HSTlog::HSTlog(uint8_t output, uint16_t maxLines)
 void HSTlog::log(LogLevel level, const String& msg) {
   uint32_t now = getTime();
 
-  LogEntry e;               // Create log entry
+  LogEntry e;                         // Create log entry
   e.level = level;
   e.message = msg;
   e.timestamp = now;
@@ -27,7 +27,7 @@ void HSTlog::log(LogLevel level, const String& msg) {
     }
   }
 
-  // --- Dispatch vers les callbacks actifs ---
+  // --- Dispatch to active callbacks ---
   const char* safe = e.message.c_str(); // copie stable
   if (_serialCb)  _serialCb(now, level, safe);
   if (_mqttCb)    _mqttCb(now, level, safe);
@@ -39,7 +39,7 @@ uint8_t HSTlog::getLastEntries(LogEntry* out,
                                LogLevel minLevel,
                                uint8_t page) const
 {
-    // 1) On collecte d'abord toutes les entrées filtrées (>= minLevel)
+    // 1) filtered entries collection (>= minLevel)
     LogEntry filtered[_maxLines];
     uint16_t fcount = 0;
 
@@ -50,11 +50,9 @@ uint8_t HSTlog::getLastEntries(LogEntry* out,
         }
     }
 
-    if (fcount == 0) {
-        return 0; // rien à afficher
-    }
+    if (fcount == 0) { return 0; }
 
-    // 2) Calcul de l'offset de pagination
+    // 2) pagination offset calculation
     uint16_t start = page * maxCount;
 
     if (start >= fcount) {
@@ -65,7 +63,7 @@ uint8_t HSTlog::getLastEntries(LogEntry* out,
       }
     }
 
-    // 3) On copie maxCount entrées à partir de start
+    // 3) copy maxCount entries from start
     uint8_t written = 0;
     for (uint16_t i = start; i < fcount && written < maxCount; ++i) {
         out[written++] = filtered[i];
@@ -103,11 +101,10 @@ void HSTlog::setTime(uint32_t unixtime) {
 }
 
 void HSTlog::dispatch(const char* msg) {
-  log(LogLevel::DEBUG, msg);    // Enregistrer le message dans le buffer circulaire
+  log(LogLevel::DEBUG, msg);
 }
 
 // --- print() ---
-
 void HSTlog::print(const char* msg) {
     dispatch(msg);
 }
@@ -158,7 +155,6 @@ void HSTlog::print(double v) {
 }
 
 // --- println() ---
-
 void HSTlog::println(const char* msg) {
     dispatch(msg);
 }
@@ -209,13 +205,11 @@ void HSTlog::println(double v) {
 }
 
 // --- printf() ---
-
 void HSTlog::printf(const char* fmt, ...) {
     char buffer[256];
     va_list args;
     va_start(args, fmt);
     vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
-
     dispatch(buffer);
 }
